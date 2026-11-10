@@ -1,3 +1,4 @@
+
 {
   "name": "practica-firebase-cicd",
   "version": "1.0.0",
@@ -10,7 +11,7 @@
     "serve": "firebase emulators:start --only hosting",
     "deploy:preview": "firebase hosting:channel:deploy local-test --expires 1d",
     "emulators": "firebase emulators:start --only auth,dataconnect",
-    "seed": "node scripts/seed.mjs",
+"test:reglas": "firebase emulators:exec --only firestore \"node --test tests/reglas.test.mjs\"",    "seed": "node scripts/seed.mjs",
     "atacar": "node scripts/atacar.mjs"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

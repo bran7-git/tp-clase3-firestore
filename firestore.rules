@@ -1,0 +1,73 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /cursos/{cursoId} {
+      // No se permite escribir documentos de cursos.
+      allow read, write: if false;
+
+      match /resenas/{resenaId} {
+
+        // Cualquier usuario puede leer reseñas.
+        allow read: if true;
+
+        function autenticado() {
+          return request.auth != null;
+        }
+
+        function esAutor() {
+          return autenticado()
+            && request.auth.uid == resenaId;
+        }
+
+        function camposValidos() {
+          return request.resource.data.keys().hasOnly([
+              'uid',
+              'puntaje',
+              'texto',
+              'autor',
+              'creadaEn'
+            ])
+            && request.resource.data.keys().hasAll([
+              'uid',
+              'puntaje',
+              'texto',
+              'autor',
+              'creadaEn'
+            ])
+            && request.resource.data.uid is string
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.puntaje is int
+            && request.resource.data.puntaje >= 1
+            && request.resource.data.puntaje <= 5
+            && request.resource.data.texto is string
+            && request.resource.data.texto.size() <= 500
+            && request.resource.data.autor is string
+            && request.resource.data.autor.size() <= 80;
+        }
+
+        // Crear una reseña propia.
+        allow create: if esAutor()
+          && camposValidos()
+          && request.resource.data.creadaEn == request.time;
+
+        // Editar una reseña propia conservando su fecha.
+        allow update: if esAutor()
+          && resource.data.uid == request.auth.uid
+          && camposValidos()
+          && request.resource.data.creadaEn == resource.data.creadaEn;
+
+        // Eliminar únicamente la reseña propia.
+        allow delete: if esAutor()
+          && resource.data.uid == request.auth.uid;
+      }
+    }
+
+    // Denegar cualquier otra operación.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

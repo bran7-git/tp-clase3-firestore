@@ -1,13 +1,19 @@
+
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
 import type { Curso, Nivel } from "@/lib/cursos";
+import ResenasCurso from "./ResenasCurso";
 
-const niveles: Array<Nivel | "todos"> = ["todos", "inicial", "intermedio", "avanzado"];
+const niveles: Array<Nivel | "todos"> = [
+  "todos",
+  "inicial",
+  "intermedio",
+  "avanzado",
+];
 
 interface Props {
   cursos: Curso[];
-  /** Contenido extra al pie de cada tarjeta (por ejemplo, el botón "Inscribirme"). */
   accion?: (curso: Curso) => ReactNode;
 }
 
@@ -20,9 +26,9 @@ export default function FiltroCursos({ cursos, accion }: Props) {
       cursos.filter(
         (c) =>
           (nivel === "todos" || c.nivel === nivel) &&
-          c.titulo.toLowerCase().includes(texto.trim().toLowerCase()),
+          c.titulo.toLowerCase().includes(texto.trim().toLowerCase())
       ),
-    [cursos, nivel, texto],
+    [cursos, nivel, texto]
   );
 
   return (
@@ -35,6 +41,7 @@ export default function FiltroCursos({ cursos, accion }: Props) {
           onChange={(e) => setTexto(e.target.value)}
           aria-label="Buscar curso por título"
         />
+
         <div className="chips" role="group" aria-label="Filtrar por nivel">
           {niveles.map((n) => (
             <button
@@ -57,13 +64,24 @@ export default function FiltroCursos({ cursos, accion }: Props) {
       <ul className="grilla">
         {visibles.map((c) => (
           <li key={c.id} className="card">
-            <span className={`badge badge--${c.nivel}`}>{c.nivel}</span>
+            <span className={`badge badge--${c.nivel}`}>
+              {c.nivel}
+            </span>
+
             <h2>{c.titulo}</h2>
             <p>{c.descripcion}</p>
+
             <small>
               {c.horas} horas · cupo {c.cupo}
             </small>
-            {accion && <div className="card__accion">{accion(c)}</div>}
+
+            {accion && (
+              <div className="card__accion">
+                {accion(c)}
+              </div>
+            )}
+
+            <ResenasCurso cursoId={c.id} />
           </li>
         ))}
       </ul>
