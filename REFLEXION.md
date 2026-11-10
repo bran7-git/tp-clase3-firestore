@@ -89,3 +89,66 @@ https://tp-firebase-clase2.web.app/cursos
 
 **Mis inscripciones:**  
 https://tp-firebase-clase2.web.app/mis-inscripciones
+## Práctica 4 · Firestore
+
+### 1. ¿Por qué el id del documento es el UID? ¿Qué tendrías que agregar (en reglas o en código) si usaras ids aleatorios con addDoc?
+
+Utilizamos el UID de Firebase Authentication como identificador del documento para garantizar que cada usuario tenga una sola reseña por curso.
+
+Esto permite crear, editar o eliminar su reseña utilizando siempre el mismo identificador.
+
+Si utilizáramos identificadores aleatorios con `addDoc`, un mismo usuario podría crear varias reseñas. Para evitarlo, necesitaríamos agregar un mecanismo que compruebe que no existe otra reseña del mismo usuario, por ejemplo, mediante un documento de control y reglas que validen su existencia.
+
+### 2. La reseña guarda una copia del nombre del autor. ¿Qué ganás y qué perdés con esa desnormalización? ¿Cómo resolverías el cambio de nombre?
+
+Guardar el nombre del autor directamente en la reseña permite mostrarlo sin consultar otra colección o servicio.
+
+La ventaja es que simplificamos las consultas y reducimos la cantidad de lecturas necesarias.
+
+La desventaja es que, si el usuario cambia su nombre, las reseñas anteriores pueden conservar el nombre viejo.
+
+Para solucionarlo, podríamos actualizar las reseñas del usuario cuando cambie su nombre o guardar solamente su UID y consultar el nombre actualizado desde su perfil.
+
+### 3. ¿Qué diferencia hay entre resource.data y request.resource.data? Dá un ejemplo de regla que use ambos.
+
+`resource.data` representa los datos que ya están guardados en Firestore antes de realizar una operación.
+
+`request.resource.data` representa los datos que quedarían guardados después de una creación o modificación.
+
+En nuestro proyecto utilizamos ambos para impedir que se modifique la fecha original de una reseña:
+
+```javascript
+request.resource.data.creadaEn == resource.data.creadaEn
+```
+
+De esta manera, el usuario puede editar su puntuación o comentario, pero no alterar la fecha de creación.
+
+### 4. ¿Por qué la regla de creación exige creadaEn == request.time en lugar de confiar en la fecha del cliente?
+
+Porque la fecha enviada desde el navegador podría ser modificada por el usuario.
+
+Al exigir `creadaEn == request.time`, Firestore comprueba que la fecha corresponda al momento de la solicitud validado por el servidor.
+
+En nuestra implementación utilizamos `serverTimestamp()` para generar ese valor y evitar que un usuario pueda inventar una fecha.
+
+### 5. ¿Qué limitación tiene getAggregateFromServer y cómo afecta la experiencia de usuario? ¿Qué alternativas hay?
+
+`getAggregateFromServer` permite calcular la cantidad de reseñas y el promedio de estrellas directamente en el servidor, sin descargar todos los documentos.
+
+Su principal limitación es que no ofrece actualizaciones automáticas en tiempo real ni funciona sin conexión.
+
+Esto significa que el promedio puede quedar desactualizado hasta realizar otra consulta.
+
+En nuestro proyecto volvemos a consultar el resumen cuando `onSnapshot` detecta cambios en las reseñas.
+
+Otra alternativa sería mantener el promedio y la cantidad en un documento de resumen actualizado desde el servidor mediante Cloud Functions.
+
+### 6. Para inscripciones con cupo máximo, ¿usarías Firestore o SQL Connect? Justificá con lo que viste en las dos prácticas.
+
+Utilizaría SQL Connect con PostgreSQL porque las inscripciones necesitan mantener relaciones entre alumnos y cursos, evitar duplicados y controlar que no se supere el cupo disponible.
+
+PostgreSQL permite utilizar claves primarias, claves foráneas, restricciones y transacciones para mantener la integridad de los datos.
+
+En cambio, Firestore resulta más conveniente para funcionalidades como las reseñas, donde necesitamos mostrar cambios en tiempo real y trabajar con documentos independientes.
+
+Por eso, en nuestro proyecto utilizamos SQL Connect para los cursos y las inscripciones, y Cloud Firestore para las reseñas.

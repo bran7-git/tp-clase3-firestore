@@ -1,3 +1,4 @@
+
 # SOLUCIÓN DE REFERENCIA (docente) — Pipeline de preview por Pull Request
 name: Preview en Pull Request
 
@@ -52,9 +53,9 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          # A3: el nombre exacto depende del Project ID de cada alumno
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REEMPLAZAR }}
-          projectId: REEMPLAZAR-POR-TU-PROJECT-ID
+          # Credencial del proyecto Firebase
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TP_FIREBASE_CLASE2 }}
+          projectId: tp-firebase-clase2
           expires: 3d
 
       # Gate de calidad: el preview tiene que pasar el chequeo de headers
